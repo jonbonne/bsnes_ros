@@ -70,34 +70,59 @@ link_directories(
     "/usr/lib/x86_64-linux-gnu"
     "/usr/local/lib")
 
-file(GLOB_RECURSE h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/*.h")
-file(GLOB_RECURSE c_files "${PROJECT_SOURCE_DIR}/src/*.c")
-file(GLOB_RECURSE hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/*.hpp")
-file(GLOB_RECURSE cpp_files "${PROJECT_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE lzma_h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/lzma/*.h")
+file(GLOB_RECURSE lzma_c_files "${PROJECT_SOURCE_DIR}/src/lzma/*.c")
+file(GLOB_RECURSE libco_h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/libco/*.h")
+file(GLOB_RECURSE libco_c_files "${PROJECT_SOURCE_DIR}/src/libco/*.c")
+file(GLOB_RECURSE gb_h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/gb/*.h")
+file(GLOB_RECURSE gb_c_files "${PROJECT_SOURCE_DIR}/src/gb/*.c")
+
 file(GLOB_RECURSE ruby_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/ruby/*.hpp")
 file(GLOB_RECURSE ruby_cpp_files "${PROJECT_SOURCE_DIR}/src/ruby/*.cpp")
 file(GLOB_RECURSE hiro_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro/*.hpp")
 file(GLOB_RECURSE hiro_cpp_files "${PROJECT_SOURCE_DIR}/src/hiro/*.cpp")
 file(GLOB_RECURSE nall_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/nall/*.hpp")
 file(GLOB_RECURSE nall_cpp_files "${PROJECT_SOURCE_DIR}/src/nall/*.cpp")
+file(GLOB_RECURSE sfc_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/sfc/*.hpp")
+file(GLOB_RECURSE sfc_cpp_files "${PROJECT_SOURCE_DIR}/src/sfc/*.cpp")
+file(GLOB_RECURSE emulator_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/emulator/*.hpp")
+file(GLOB_RECURSE emulator_cpp_files "${PROJECT_SOURCE_DIR}/src/emulator/*.cpp")
+file(GLOB_RECURSE filter_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter/*.hpp")
+file(GLOB_RECURSE filter_cpp_files "${PROJECT_SOURCE_DIR}/src/filter/*.cpp")
+file(GLOB_RECURSE processor_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/processor/*.hpp")
+file(GLOB_RECURSE processor_cpp_files "${PROJECT_SOURCE_DIR}/src/processor/*.cpp")
 
 # build up libraries
+add_library(lzma STATIC ${lzma_h_files} "include/${PROJECT_NAME}/lzma/lzma.hpp" ${lzma_c_files} "src/lzma/lzma.cpp")
+add_library(libco STATIC ${libco_h_files} ${libco_c_files})
+add_library(gb STATIC ${gb_h_files} ${gb_c_files})
+add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
+add_library(sfc STATIC ${sfc_hpp_files} ${sfc_cpp_files})
+add_library(emulator STATIC ${emulator_hpp_files} ${emulator_cpp_files})
+add_library(filter STATIC ${filter_hpp_files} ${filter_cpp_files})
+add_library(processor STATIC ${processor_hpp_files} ${processor_cpp_files})
+
 add_library(ruby STATIC ${ruby_hpp_files} ${ruby_cpp_files})
-target_link_libraries(ruby GL Xv asound openal pulse pulse-simple ao udev -D_REENTRANT)
+add_definitions(-D_REENTRANT)
+target_link_libraries(ruby GL Xv asound openal pulse pulse-simple ao udev)
 
 add_library(hiro-gtk2 STATIC ${hiro_hpp_files} ${hiro_cpp_files})
-target_link_libraries(hiro-gtk2 -DHIRO_GTK=2 pthread cairo fontconfig freetype X11)
+add_definitions(-DHIRO_GTK=2)
+target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype X11)
 #gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
 
 add_library(nall STATIC ${nall_hpp_files} ${nall_cpp_files})
-target_link_libraries(nall -DHIRO_GTK=2 pthread dl rt)
+add_definitions(-DHIRO_GTK=2)
+target_link_libraries(nall pthread dl rt)
+
+#file(GLOB_RECURSE h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/*.h")
+#file(GLOB_RECURSE c_files "${PROJECT_SOURCE_DIR}/src/*.c")
+file(GLOB_RECURSE hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/target-bsnes/*.hpp")
+file(GLOB_RECURSE cpp_files "${PROJECT_SOURCE_DIR}/src/target-bsnes*.cpp")
 
 # Add Libraries/Executables
-add_library(${PROJECT_NAME} ${cpp_files})
-target_link_libraries(${PROJECT_NAME} SHARED ruby hiro-gtk2 nall)
-
-add_executable(zone_manager_node "nodes/zone_manager_node.cpp")
-target_link_libraries(zone_manager_node ${PROJECT_NAME} ${REQLIBS})
+add_executable(${PROJECT_NAME} ${hpp_files} ${cpp_files})
+target_link_libraries(${PROJECT_NAME} lzma libco gb sfc emulator filter processor ruby hiro-gtk2 nall)
 
 #
 # Add pybind11 modules
@@ -131,12 +156,6 @@ install(
 # Install project artifacts
 install(TARGETS
   ${PROJECT_NAME}
-  DESTINATION lib
-#  DESTINATION lib/python${PYTHON_VER}/site-packages/${PROJECT_NAME}
-)
-
-install(TARGETS
-  zone_manager_node
   DESTINATION lib/${PROJECT_NAME}
 #  DESTINATION lib/python${PYTHON_VER}/site-packages/${PROJECT_NAME}
 )
