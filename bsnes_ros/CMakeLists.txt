@@ -54,7 +54,7 @@ include_directories(
     #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/lzma
     #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter
     #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter/snes_ntsc
-    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/nall
+    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/all
     #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/sfc/dsp
     #    ${PROJECT_SOURCE_DIR}/src/processor/gsu
     #    ${PROJECT_SOURCE_DIR}/src/processor/hg51b
@@ -96,6 +96,7 @@ include_directories(
     #"/usr/include/freetype2"
     #"/usr/include/libpng16"
     #"/usr/include/freetype2"
+    ${sourcery_INCLUDE_DIRS}
     ${OpenAL_INCLUDE_DIRS}
     ${GTK2_INCLUDE_DIRS}
     ${ALSA_INCLUDE_DIRS}
