@@ -21,6 +21,14 @@ find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(pybind11 REQUIRED)
+#find_package(ao REQUIRED)
+find_package(OpenAL REQUIRED)
+#find_package(Cairo REQUIRED)
+find_package(GTK2 REQUIRED)
+#find_package(Xv REQUIRED)
+find_package(ALSA REQUIRED)
+find_package(PulseAudio REQUIRED)
+#find_package(SDL REQUIRED)
 find_package(PythonInterp "${PYTHON_VER}" REQUIRED)
 find_package(PythonLibs "${PYTHON_VER}")
 set(PYTHON_INCLUDE_DIRS "/usr/include/python${PYTHON_VER}")
@@ -43,8 +51,8 @@ ament_export_dependencies(rclpy)
 include_directories(
     ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}
     #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/lzma
-    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter
-    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter/snes_ntsc
+    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter
+    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter/snes_ntsc
     ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/nall
     #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/sfc/dsp
     #    ${PROJECT_SOURCE_DIR}/src/processor/gsu
@@ -67,33 +75,42 @@ include_directories(
 #    ${rclcpp_INCLUDE_DIRS}
     ${pybind11_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
-    "/usr/include"
-    "/usr/local/include"
-    "/usr/include/SDL2"
+    #    "/usr/include"
+    #"/usr/local/include"
+    #"/usr/include/SDL2"
     "/usr/include/gtksourceview-2.0"
-    "/usr/include/libxml2"
-    "/usr/include/gtk-2.0"
-    "/usr/include/gio-unix-2.0/"
+    #"/usr/include/libxml2"
+    #"/usr/include/gtk-2.0"
+    #"/usr/include/gio-unix-2.0/"
     "/usr/include/cairo"
-    "/usr/include/pango-1.0"
-    "/usr/include/atk-1.0"
-    "/usr/include/pixman-1"
-    "/usr/include/gdk-pixbuf-2.0"
-    "/usr/include/libpng16"
-    "/usr/include/harfbuzz"
-    "/usr/include/glib-2.0"
-    "/usr/lib/x86_64-linux-gnu/gtk-2.0/include"
-    "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
-    "/usr/include/freetype2"
-    "/usr/include/libpng16"
-    "/usr/include/freetype2"
+    #"/usr/include/pango-1.0"
+    #"/usr/include/atk-1.0"
+    #"/usr/include/pixman-1"
+    #"/usr/include/gdk-pixbuf-2.0"
+    #"/usr/include/libpng16"
+    #"/usr/include/harfbuzz"
+    #"/usr/include/glib-2.0"
+    #"/usr/lib/x86_64-linux-gnu/gtk-2.0/include"
+    #"/usr/lib/x86_64-linux-gnu/glib-2.0/include"
+    #"/usr/include/freetype2"
+    #"/usr/include/libpng16"
+    #"/usr/include/freetype2"
+    ${OpenAL_INCLUDE_DIRS}
+    ${GTK2_INCLUDE_DIRS}
+    ${ALSA_INCLUDE_DIRS}
+    ${PulseAudio_INCLUDE_DIRS}
 )
 link_directories(
     ${rclcpp_LIBRARY_DIRS}
     "/usr/lib/python${PYTHON_VER}/config-${PYTHON_VER}m-x86_64-linux-gnu/"
-    "/usr/lib/x86_64-linux-gnu"
-    "/usr/lib/x86_64-linux-gnu/pulseaudio"
-    "/usr/local/lib")
+    #"/usr/lib/x86_64-linux-gnu"
+    #"/usr/lib/x86_64-linux-gnu/pulseaudio"
+    #"/usr/local/lib"
+    ${OpenAL_LIBRARY_DIRS}
+    ${GTK2_LIBRARY_DIRS}
+    ${ALSA_LIBRARY_DIRS}
+    ${PulseAudio_LIBRARY_DIRS}
+    )
 
 add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
 add_definitions(-D_REENTRANT)
@@ -158,9 +175,11 @@ set(ui_TARGETS ui-program ui-input ui-presentation ui-settings ui-tools ui-resou
 
 add_library(hiro-gtk2 SHARED "src/hiro/hiro.cpp")
 target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype X11 Xext)
-set(hiro_DEPS gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
+#set(hiro_DEPS gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
+set(hiro_DEPS ${GTK2_LIBRARIES} gtksourceview-2.0)
 add_library(ruby SHARED "src/ruby/ruby.cpp")
-set(ruby_DEPS Xv asound openal pulse pulse-simple ao asound asyncns udev)
+#set(ruby_DEPS Xv asound openal pulse pulse-simple ao asound udev)
+set(ruby_DEPS Xv ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} udev)
 
 add_library(lzma SHARED "src/lzma/lzma.hpp" "src/lzma/lzma.cpp")
 add_library(libco SHARED "src/libco/libco.c")
@@ -168,7 +187,8 @@ add_library(emulator SHARED "src/emulator/emulator.cpp")
 add_library(filter SHARED "src/filter/filter.cpp")
 
 add_executable(${PROJECT_NAME} "src/target-bsnes/bsnes.cpp")
-set(project_DEPS ao asound asyncns dbus-1 FLAC gcrypt GLdispatch GL GLX gomp gpg-error lz4 nsl ogg openal pulsecommon-11.1 pulse-simple pulse SDL2-2.0 xkbcommon Xss Xv Xxf86vm)
+#set(project_DEPS ao asound asyncns dbus-1 FLAC gcrypt GLdispatch GL GLX gomp gpg-error lz4 nsl ogg openal pulsecommon-11.1 pulse-simple pulse SDL2-2.0 xkbcommon Xss Xv Xxf86vm)
+set(project_DEPS ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} ${GTK2_LIBRARIES} udev)
 target_link_libraries(${PROJECT_NAME} ${ui_TARGETS} ${sfc_TARGETS} ${gb_TARGETS} ${processor_TARGETS} emulator filter ruby hiro-gtk2 ${hiro_DEPS} ${ruby_DEPS} ${project_DEPS} libco lzma dl)
 
 #
@@ -226,6 +246,14 @@ ament_export_dependencies(ament_cmake)
 ament_export_dependencies(ament_cmake_python)
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(rclpy)
+#ament_export_dependencies(ao)
+ament_export_dependencies(OpenAL)
+#ament_export_dependencies(Cairo)
+ament_export_dependencies(GTK2)
+#ament_export_dependencies(Xv)
+ament_export_dependencies(ALSA)
+ament_export_dependencies(PulseAudio)
+#ament_export_dependencies(SDL)
 ament_export_include_directories(include ${rclcpp_INCLUDE_DIRS})
 ament_export_libraries(${PROJECT_NAME} ${rclcpp_LIBRARIES})
 
