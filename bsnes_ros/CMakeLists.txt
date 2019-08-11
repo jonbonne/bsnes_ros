@@ -175,6 +175,9 @@ add_library(ui-tools SHARED "src/target-bsnes/tools/tools.cpp")
 add_library(ui-resource SHARED "src/target-bsnes/resource/resource.cpp")
 set(ui_TARGETS ui-program ui-input ui-presentation ui-settings ui-tools ui-resource)
 
+execute_process(COMMAND "sourcery resource.bml resource.cpp resource.hpp" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/hiro/resource)
+execute_process(COMMAND "sourcery resource.bml resource.cpp resource.hpp" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/target-bsnes/resource)
+
 add_library(hiro-gtk2 SHARED "src/hiro/hiro.cpp")
 target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype X11 Xext)
 #set(hiro_DEPS gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
