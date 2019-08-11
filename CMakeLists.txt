@@ -92,6 +92,7 @@ link_directories(
     ${rclcpp_LIBRARY_DIRS}
     "/usr/lib/python${PYTHON_VER}/config-${PYTHON_VER}m-x86_64-linux-gnu/"
     "/usr/lib/x86_64-linux-gnu"
+    "/usr/lib/x86_64-linux-gnu/pulseaudio"
     "/usr/local/lib")
 
 add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
@@ -99,77 +100,76 @@ add_definitions(-D_REENTRANT)
 add_definitions(-DHIRO_GTK=2)
 
 # build up libraries
-add_library(lzma STATIC "src/lzma/lzma.hpp" "src/lzma/lzma.cpp")
-add_library(libco STATIC "src/libco/libco.c")
+add_library(gb-apu SHARED "src/gb/Core/apu.c")
+add_library(gb-camera SHARED "src/gb/Core/camera.c")
+#add_library(gb-debugger SHARED "src/gb/Core/debugger.c")
+add_library(gb-display SHARED "src/gb/Core/display.c")
+add_library(gb-gb SHARED "src/gb/Core/gb.c")
+target_link_libraries(gb-gb gb-display)
+add_library(gb-joypad SHARED "src/gb/Core/joypad.c")
+add_library(gb-mbc SHARED "src/gb/Core/mbc.c")
+add_library(gb-memory SHARED "src/gb/Core/memory.c")
+target_link_libraries(gb-memory gb-camera gb-display)
+add_library(gb-printer SHARED "src/gb/Core/printer.c")
+add_library(gb-random SHARED "src/gb/Core/random.c")
+add_library(gb-rewind SHARED "src/gb/Core/rewind.c")
+add_library(gb-save_state SHARED "src/gb/Core/save_state.c")
+add_library(gb-sgb SHARED "src/gb/Core/sgb.c")
+add_library(gb-sm83_cpu SHARED "src/gb/Core/sm83_cpu.c")
+#add_library(gb-sm83_disassembler SHARED "src/gb/Core/sm83_disassembler.c")
+add_library(gb-symbol_hash SHARED "src/gb/Core/symbol_hash.c")
+add_library(gb-timing SHARED "src/gb/Core/timing.c")
+set(gb_TARGETS gb-apu gb-camera gb-display gb-gb gb-joypad gb-mbc gb-memory gb-printer gb-random gb-rewind gb-save_state gb-sgb gb-sm83_cpu gb-symbol_hash gb-timing)
 
-add_library(gb-apu STATIC "src/gb/Core/apu.c")
-add_library(gb-camera STATIC "src/gb/Core/camera.c")
-#add_library(gb-debugger STATIC "src/gb/Core/debugger.c")
-add_library(gb-display STATIC "src/gb/Core/display.c")
-add_library(gb-gb STATIC "src/gb/Core/gb.c")
-add_library(gb-joypad STATIC "src/gb/Core/joypad.c")
-add_library(gb-mbc STATIC "src/gb/Core/mbc.c")
-add_library(gb-memory STATIC "src/gb/Core/memory.c")
-add_library(gb-printer STATIC "src/gb/Core/printer.c")
-add_library(gb-random STATIC "src/gb/Core/random.c")
-add_library(gb-rewind STATIC "src/gb/Core/rewind.c")
-add_library(gb-save_state STATIC "src/gb/Core/save_state.c")
-add_library(gb-sgb STATIC "src/gb/Core/sgb.c")
-add_library(gb-sm83_cpu STATIC "src/gb/Core/sm83_cpu.c")
-#add_library(gb-sm83_disassembler STATIC "src/gb/Core/sm83_disassembler.c")
-add_library(gb-symbol_hash STATIC "src/gb/Core/symbol_hash.c")
-add_library(gb-timing STATIC "src/gb/Core/timing.c")
-set(gb_LIBS gb-apu gb-camera gb-display gb-gb gb-joypad gb-mbc gb-memory gb-printer gb-random gb-rewind gb-save_state gb-sgb gb-sm83_cpu gb-symbol_hash gb-timing)
+add_library(sfc-interface SHARED "src/sfc/interface/interface.cpp")
+add_library(sfc-system SHARED "src/sfc/system/system.cpp")
+add_library(sfc-controller SHARED "src/sfc/controller/controller.cpp")
+add_library(sfc-cartridge SHARED "src/sfc/cartridge/cartridge.cpp")
+add_library(sfc-memory SHARED "src/sfc/memory/memory.cpp")
+add_library(sfc-cpu SHARED "src/sfc/cpu/cpu.cpp")
+add_library(sfc-smp SHARED "src/sfc/smp/smp.cpp")
+add_library(sfc-dsp SHARED "src/sfc/dsp/dsp.cpp")
+add_library(sfc-ppu SHARED "src/sfc/ppu/ppu.cpp")
+add_library(sfc-ppu-fast SHARED "src/sfc/ppu-fast/ppu.cpp")
+add_library(sfc-expansion SHARED "src/sfc/expansion/expansion.cpp")
+add_library(sfc-coprocessor SHARED "src/sfc/coprocessor/coprocessor.cpp")
+target_link_libraries(sfc-coprocessor ${gb_TARGETS})
+add_library(sfc-slot SHARED "src/sfc/slot/slot.cpp")
+set(sfc_TARGETS sfc-interface sfc-system sfc-controller sfc-cartridge sfc-memory sfc-cpu sfc-smp sfc-dsp sfc-ppu sfc-ppu-fast sfc-expansion sfc-coprocessor sfc-slot)
 
-add_library(sfc-interface STATIC "src/sfc/interface/interface.cpp")
-add_library(sfc-system STATIC "src/sfc/system/system.cpp")
-add_library(sfc-controller STATIC "src/sfc/controller/controller.cpp")
-add_library(sfc-cartridge STATIC "src/sfc/cartridge/cartridge.cpp")
-add_library(sfc-memory STATIC "src/sfc/memory/memory.cpp")
-add_library(sfc-cpu STATIC "src/sfc/cpu/cpu.cpp")
-add_library(sfc-smp STATIC "src/sfc/smp/smp.cpp")
-add_library(sfc-dsp STATIC "src/sfc/dsp/dsp.cpp")
-add_library(sfc-ppu STATIC "src/sfc/ppu/ppu.cpp")
-add_library(sfc-ppu-fast STATIC "src/sfc/ppu-fast/ppu.cpp")
-add_library(sfc-expansion STATIC "src/sfc/expansion/expansion.cpp")
-add_library(sfc-coprocessor STATIC "src/sfc/coprocessor/coprocessor.cpp")
-add_library(sfc-slot STATIC "src/sfc/slot/slot.cpp")
-set(sfc_LIBS sfc-interface sfc-system sfc-controller sfc-cartridge sfc-memory sfc-cpu sfc-smp sfc-dsp sfc-ppu sfc-ppu-fast sfc-expansion sfc-coprocessor sfc-slot)
-
-add_library(emulator STATIC "src/emulator/emulator.cpp")
-add_library(filter STATIC "src/filter/filter.cpp")
-
-add_library(processor-arm7tdmi STATIC "src/processor/arm7tdmi/arm7tdmi.cpp")
-#add_library(processor-gsu STATIC "src/processor/gsu/gsu.cpp")
-#add_library(processor-hg51b STATIC "src/processor/hg51b/hg51b.cpp")
-#add_library(processor-sm83 STATIC "src/processor/sm83/sm83.cpp")
-add_library(processor-spc700 STATIC "src/processor/spc700/spc700.cpp")
-#add_library(processor-upd96050 STATIC "src/processor/upd96050/upd96050.cpp")
-add_library(processor-wdc65816 STATIC "src/processor/wdc65816/wdc65816.cpp")
-set(processor_LIBS processor-arm7tdmi processor-spc700 processor-wdc65816)
-
-add_library(ruby STATIC "src/ruby/ruby.cpp")
-target_link_libraries(ruby GL Xv asound openal pulse pulse-simple ao udev)
-
-add_library(hiro-gtk2 STATIC "src/hiro/hiro.cpp")
-target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype X11 Xext)
-set(hiro_LIBS gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
-
-#file(GLOB_RECURSE hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/target-bsnes/*.hpp")
-#file(GLOB_RECURSE cpp_files "${PROJECT_SOURCE_DIR}/src/target-bsnes*.cpp")
+add_library(processor-arm7tdmi SHARED "src/processor/arm7tdmi/arm7tdmi.cpp")
+#add_library(processor-gsu SHARED "src/processor/gsu/gsu.cpp")
+#add_library(processor-hg51b SHARED "src/processor/hg51b/hg51b.cpp")
+#add_library(processor-sm83 SHARED "src/processor/sm83/sm83.cpp")
+add_library(processor-spc700 SHARED "src/processor/spc700/spc700.cpp")
+#add_library(processor-upd96050 SHARED "src/processor/upd96050/upd96050.cpp")
+add_library(processor-wdc65816 SHARED "src/processor/wdc65816/wdc65816.cpp")
+set(processor_TARGETS processor-arm7tdmi processor-spc700 processor-wdc65816)
 
 # Add Libraries/Executables
-#add_library(ui-bsnes STATIC "src/target-bsnes/bsnes.cpp")
-add_library(ui-program STATIC "src/target-bsnes/program/program.cpp")
-add_library(ui-input STATIC "src/target-bsnes/input/input.cpp")
-add_library(ui-presentation STATIC "src/target-bsnes/presentation/presentation.cpp")
-add_library(ui-settings STATIC "src/target-bsnes/settings/settings.cpp")
-add_library(ui-tools STATIC "src/target-bsnes/tools/tools.cpp")
-add_library(ui-resource STATIC "src/target-bsnes/resource/resource.cpp")
-set(ui_LIBS ui-program ui-input ui-presentation ui-settings ui-tools ui-resource)
+#add_library(ui-bsnes SHARED "src/target-bsnes/bsnes.cpp")
+add_library(ui-program SHARED "src/target-bsnes/program/program.cpp")
+add_library(ui-input SHARED "src/target-bsnes/input/input.cpp")
+add_library(ui-presentation SHARED "src/target-bsnes/presentation/presentation.cpp")
+add_library(ui-settings SHARED "src/target-bsnes/settings/settings.cpp")
+add_library(ui-tools SHARED "src/target-bsnes/tools/tools.cpp")
+add_library(ui-resource SHARED "src/target-bsnes/resource/resource.cpp")
+set(ui_TARGETS ui-program ui-input ui-presentation ui-settings ui-tools ui-resource)
+
+add_library(hiro-gtk2 SHARED "src/hiro/hiro.cpp")
+target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype X11 Xext)
+set(hiro_DEPS gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
+add_library(ruby SHARED "src/ruby/ruby.cpp")
+set(ruby_DEPS Xv asound openal pulse pulse-simple ao asound asyncns udev)
+
+add_library(lzma SHARED "src/lzma/lzma.hpp" "src/lzma/lzma.cpp")
+add_library(libco SHARED "src/libco/libco.c")
+add_library(emulator SHARED "src/emulator/emulator.cpp")
+add_library(filter SHARED "src/filter/filter.cpp")
 
 add_executable(${PROJECT_NAME} "src/target-bsnes/bsnes.cpp")
-target_link_libraries(${PROJECT_NAME} ${ui_LIBS} ${sfc_LIBS} ${gb_LIBS} ${processor_LIBS} emulator filter ruby hiro-gtk2 ${hiro_LIBS} libco lzma dl)
+set(project_DEPS ao asound asyncns dbus-1 FLAC gcrypt GLdispatch GL GLX gomp gpg-error lz4 nsl ogg openal pulsecommon-11.1 pulse-simple pulse SDL2-2.0 xkbcommon Xss Xv Xxf86vm)
+target_link_libraries(${PROJECT_NAME} ${ui_TARGETS} ${sfc_TARGETS} ${gb_TARGETS} ${processor_TARGETS} emulator filter ruby hiro-gtk2 ${hiro_DEPS} ${ruby_DEPS} ${project_DEPS} libco lzma dl)
 
 #
 # Add pybind11 modules
@@ -200,11 +200,25 @@ install(
 # Install python scripts
 #install(PROGRAMS scripts/test_pybind DESTINATION bin)
 
-# Install project artifacts
+# Install project libraries
+install(TARGETS
+  lzma
+  libco
+  emulator
+  filter
+  ruby
+  hiro-gtk2
+  ${gb_TARGETS}
+  ${sfc_TARGETS}
+  ${processor_TARGETS}
+  ${ui_TARGETS}
+  DESTINATION lib
+)
+
+# Install project executables
 install(TARGETS
   ${PROJECT_NAME}
   DESTINATION lib/${PROJECT_NAME}
-#  DESTINATION lib/python${PYTHON_VER}/site-packages/${PROJECT_NAME}
 )
 
 # Export package dependencies
