@@ -25,9 +25,9 @@ add_executable(${PROJECT_NAME} "src/sourcery.cpp")
 
 # Install C++ headers
 install(
-  DIRECTORY include/${PROJECT_NAME}/
-  DESTINATION include/${PROJECT_NAME}
-  FILES_MATCHING PATTERN "*.hpp")
+  DIRECTORY include/
+  DESTINATION include
+  FILES_MATCHING PATTERN "*.h*")
 
 # Install project executables
 install(TARGETS
@@ -37,6 +37,6 @@ install(TARGETS
 
 # Export package dependencies
 ament_export_dependencies(ament_cmake)
-ament_export_libraries(${PROJECT_NAME})
+ament_export_include_directories("include")
 
 ament_package()
