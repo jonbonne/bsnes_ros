@@ -1,20 +1,20 @@
 cmake_minimum_required(VERSION 3.10)
 project(bsnes_ros)
 
-# Default to C++14
+# Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 14)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Wall -Wextra -Wpedantic -fPIC -03 -DBUILD_PERFORMANCE -fwhole-program -flto -fno-fat-lto-objects -fno-strict-aliasing -fwrapv)
+    add_compile_options(-Wall -Wextra -Wpedantic -fPIC -O3 -DBUILD_PERFORMANCE -fwhole-program -flto -fno-fat-lto-objects -fno-strict-aliasing -fwrapv)
 endif()
 
 # Pybind11 Settings
 set(PYTHON_VER "3.6")
 set(PYBIND11_PYTHON_VERSION ${PYTHON_VER})
 set(Python_ADDITIONAL_VERSIONS ${PYTHON_VER})
-set(PYBIND11_CPP_STANDARD -std=c++14)
+set(PYBIND11_CPP_STANDARD -std=c++17)
 
 # set dependency requirements
 find_package(ament_cmake REQUIRED)
@@ -41,10 +41,24 @@ ament_export_dependencies(rclpy)
 
 # Includes, namely python
 include_directories(
-    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/lzma
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/libco
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/nall
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/gb/Core
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro/core
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro/extension
+    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro/resource
+    ${PROJECT_SOURCE_DIR}/src/hiro
+    ${PROJECT_SOURCE_DIR}/src/hiro/core
+    ${PROJECT_SOURCE_DIR}/src/hiro/extension
+    ${PROJECT_SOURCE_DIR}/src/hiro/resource
 #    ${rclcpp_INCLUDE_DIRS}
     ${pybind11_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
+    "/usr/include"
+    "/usr/local/include"
     "/usr/include/SDL2"
     "/usr/include/gtksourceview-2.0"
     "/usr/include/libxml2"
@@ -70,50 +84,70 @@ link_directories(
     "/usr/lib/x86_64-linux-gnu"
     "/usr/local/lib")
 
-file(GLOB_RECURSE lzma_h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/lzma/*.h")
-file(GLOB_RECURSE lzma_c_files "${PROJECT_SOURCE_DIR}/src/lzma/*.c")
-file(GLOB_RECURSE libco_h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/libco/*.h")
-file(GLOB_RECURSE libco_c_files "${PROJECT_SOURCE_DIR}/src/libco/*.c")
 file(GLOB_RECURSE gb_h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/gb/*.h")
-file(GLOB_RECURSE gb_c_files "${PROJECT_SOURCE_DIR}/src/gb/*.c")
 
 file(GLOB_RECURSE ruby_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/ruby/*.hpp")
-file(GLOB_RECURSE ruby_cpp_files "${PROJECT_SOURCE_DIR}/src/ruby/*.cpp")
 file(GLOB_RECURSE hiro_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro/*.hpp")
-file(GLOB_RECURSE hiro_cpp_files "${PROJECT_SOURCE_DIR}/src/hiro/*.cpp")
-file(GLOB_RECURSE nall_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/nall/*.hpp")
-file(GLOB_RECURSE nall_cpp_files "${PROJECT_SOURCE_DIR}/src/nall/*.cpp")
 file(GLOB_RECURSE sfc_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/sfc/*.hpp")
-file(GLOB_RECURSE sfc_cpp_files "${PROJECT_SOURCE_DIR}/src/sfc/*.cpp")
 file(GLOB_RECURSE emulator_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/emulator/*.hpp")
-file(GLOB_RECURSE emulator_cpp_files "${PROJECT_SOURCE_DIR}/src/emulator/*.cpp")
 file(GLOB_RECURSE filter_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter/*.hpp")
-file(GLOB_RECURSE filter_cpp_files "${PROJECT_SOURCE_DIR}/src/filter/*.cpp")
-file(GLOB_RECURSE processor_hpp_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/processor/*.hpp")
-file(GLOB_RECURSE processor_cpp_files "${PROJECT_SOURCE_DIR}/src/processor/*.cpp")
+
+add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
+add_definitions(-D_REENTRANT)
+add_definitions(-DHIRO_GTK=2)
 
 # build up libraries
-add_library(lzma STATIC ${lzma_h_files} "include/${PROJECT_NAME}/lzma/lzma.hpp" ${lzma_c_files} "src/lzma/lzma.cpp")
-add_library(libco STATIC ${libco_h_files} ${libco_c_files})
-add_library(gb STATIC ${gb_h_files} ${gb_c_files})
-add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
-add_library(sfc STATIC ${sfc_hpp_files} ${sfc_cpp_files})
-add_library(emulator STATIC ${emulator_hpp_files} ${emulator_cpp_files})
-add_library(filter STATIC ${filter_hpp_files} ${filter_cpp_files})
-add_library(processor STATIC ${processor_hpp_files} ${processor_cpp_files})
+add_library(lzma STATIC "src/lzma/lzma.cpp")
 
-add_library(ruby STATIC ${ruby_hpp_files} ${ruby_cpp_files})
-add_definitions(-D_REENTRANT)
+add_library(gb-apu STATIC "src/gb/Core/apu.c")
+add_library(gb-camera STATIC "src/gb/Core/camera.c")
+add_library(gb-debugger STATIC "src/gb/Core/debugger.c")
+add_library(gb-display STATIC "src/gb/Core/display.c")
+add_library(gb-gb STATIC "src/gb/Core/gb.c")
+add_library(gb-joypad STATIC "src/gb/Core/joypad.c")
+add_library(gb-mbc STATIC "src/gb/Core/mbc.c")
+add_library(gb-memory STATIC "src/gb/Core/memory.c")
+add_library(gb-printer STATIC "src/gb/Core/printer.c")
+add_library(gb-random STATIC "src/gb/Core/random.c")
+add_library(gb-rewind STATIC "src/gb/Core/rewind.c")
+add_library(gb-save_state STATIC "src/gb/Core/save_state.c")
+add_library(gb-sgb STATIC "src/gb/Core/sgb.c")
+add_library(gb-sm83_cpu STATIC "src/gb/Core/sm83_cpu.c")
+add_library(gb-sm83_disassembler STATIC "src/gb/Core/sm83_disassembler.c")
+add_library(gb-symbol_hash STATIC "src/gb/Core/symbol_hash.c")
+add_library(gb-timing STATIC "src/gb/Core/timing.c")
+
+add_library(sfc-interface STATIC "src/sfc/interface/interface.cpp")
+add_library(sfc-system STATIC "src/sfc/system/system.cpp")
+add_library(sfc-controller STATIC "src/sfc/controller/controller.cpp")
+add_library(sfc-cartridge STATIC "src/sfc/cartridge/cartridge.cpp")
+add_library(sfc-memory STATIC "src/sfc/memory/memory.cpp")
+add_library(sfc-cpu STATIC "src/sfc/cpu/cpu.cpp")
+add_library(sfc-smp STATIC "src/sfc/smp/smp.cpp")
+add_library(sfc-dsp STATIC "src/sfc/dsp/dsp.cpp")
+add_library(sfc-ppu STATIC "src/sfc/ppu/ppu.cpp")
+add_library(sfc-ppu-fast STATIC "src/sfc/ppu-fast/ppu.cpp")
+add_library(sfc-expansion STATIC "src/sfc/expansion/expansion.cpp")
+add_library(sfc-coprocessor STATIC "src/sfc/coprocessor/coprocessor.cpp")
+add_library(sfc-slot STATIC "src/sfc/slot/slot.cpp")
+
+add_library(emulator STATIC ${emulator_hpp_files} "src/emulator/emulator.cpp")
+add_library(filter STATIC ${filter_hpp_files} "src/filter/filter.cpp")
+
+add_library(processor-arm7tdmi STATIC "src/processor/arm7tdmi/arm7tdmi.cpp")
+add_library(processor-gsu STATIC "src/processor/gsu/gsu.cpp")
+add_library(processor-hg51b STATIC "src/processor/hg51b/hg51b.cpp")
+add_library(processor-sm83 STATIC "src/processor/sm83/sm83.cpp")
+add_library(processor-spc700 STATIC "src/processor/spc700/spc700.cpp")
+add_library(processor-upd96050 STATIC "src/processor/upd96050/upd96050.cpp")
+add_library(processor-wdc65816 STATIC "src/processor/wdc65816/wdc65816.cpp")
+
+add_library(ruby STATIC ${ruby_hpp_files} "src/ruby/ruby.cpp")
 target_link_libraries(ruby GL Xv asound openal pulse pulse-simple ao udev)
 
-add_library(hiro-gtk2 STATIC ${hiro_hpp_files} ${hiro_cpp_files})
-add_definitions(-DHIRO_GTK=2)
+add_library(hiro-gtk2 STATIC ${hiro_hpp_files} "src/hiro/hiro.cpp")
 target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype X11)
 #gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
-
-add_library(nall STATIC ${nall_hpp_files} ${nall_cpp_files})
-add_definitions(-DHIRO_GTK=2)
-target_link_libraries(nall pthread dl rt)
 
 #file(GLOB_RECURSE h_files "${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/*.h")
 #file(GLOB_RECURSE c_files "${PROJECT_SOURCE_DIR}/src/*.c")
@@ -122,7 +156,7 @@ file(GLOB_RECURSE cpp_files "${PROJECT_SOURCE_DIR}/src/target-bsnes*.cpp")
 
 # Add Libraries/Executables
 add_executable(${PROJECT_NAME} ${hpp_files} ${cpp_files})
-target_link_libraries(${PROJECT_NAME} lzma libco gb sfc emulator filter processor ruby hiro-gtk2 nall)
+target_link_libraries(${PROJECT_NAME} lzma gb emulator filter ruby hiro-gtk2)
 
 #
 # Add pybind11 modules
