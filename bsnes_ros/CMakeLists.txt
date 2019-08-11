@@ -51,51 +51,13 @@ ament_export_dependencies(rclpy)
 # Includes, namely python
 include_directories(
     ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/lzma
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/filter/snes_ntsc
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/all
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/sfc/dsp
-    #    ${PROJECT_SOURCE_DIR}/src/processor/gsu
-    #    ${PROJECT_SOURCE_DIR}/src/processor/hg51b
-    #    ${PROJECT_SOURCE_DIR}/src/processor/sm83
-    #    ${PROJECT_SOURCE_DIR}/src/processor/spc700
-    #    ${PROJECT_SOURCE_DIR}/src/processor/upd96050
-    #    ${PROJECT_SOURCE_DIR}/src/processor/wdc65816
-    #    ${PROJECT_SOURCE_DIR}/src/processor/arm7tdmi
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/sfc
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro/core
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro/extension
-    #    ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}/hiro/resource
-    #    ${PROJECT_SOURCE_DIR}/src/hiro
-    #    ${PROJECT_SOURCE_DIR}/src/hiro/core
-    #    ${PROJECT_SOURCE_DIR}/src/hiro/extension
-    #    ${PROJECT_SOURCE_DIR}/src/hiro/resource
 #    ${rclcpp_INCLUDE_DIRS}
     ${pybind11_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
-    #    "/usr/include"
-    #"/usr/local/include"
-    #"/usr/include/SDL2"
     "/usr/include/gtksourceview-2.0"
-    #"/usr/include/libxml2"
-    #"/usr/include/gtk-2.0"
-    #"/usr/include/gio-unix-2.0/"
     "/usr/include/cairo"
-    #"/usr/include/pango-1.0"
-    #"/usr/include/atk-1.0"
-    #"/usr/include/pixman-1"
-    #"/usr/include/gdk-pixbuf-2.0"
-    #"/usr/include/libpng16"
-    #"/usr/include/harfbuzz"
-    #"/usr/include/glib-2.0"
-    #"/usr/lib/x86_64-linux-gnu/gtk-2.0/include"
-    #"/usr/lib/x86_64-linux-gnu/glib-2.0/include"
-    #"/usr/include/freetype2"
-    #"/usr/include/libpng16"
-    #"/usr/include/freetype2"
     ${sourcery_INCLUDE_DIRS}
     ${OpenAL_INCLUDE_DIRS}
     ${GTK2_INCLUDE_DIRS}
@@ -105,9 +67,6 @@ include_directories(
 link_directories(
     ${rclcpp_LIBRARY_DIRS}
     "/usr/lib/python${PYTHON_VER}/config-${PYTHON_VER}m-x86_64-linux-gnu/"
-    #"/usr/lib/x86_64-linux-gnu"
-    #"/usr/lib/x86_64-linux-gnu/pulseaudio"
-    #"/usr/local/lib"
     ${OpenAL_LIBRARY_DIRS}
     ${GTK2_LIBRARY_DIRS}
     ${ALSA_LIBRARY_DIRS}
@@ -184,7 +143,7 @@ target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype X11 Xext)
 set(hiro_DEPS ${GTK2_LIBRARIES} gtksourceview-2.0)
 add_library(ruby SHARED "src/ruby/ruby.cpp")
 #set(ruby_DEPS Xv asound openal pulse pulse-simple ao asound udev)
-set(ruby_DEPS Xv ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} udev)
+set(ruby_DEPS Xv ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} GL udev)
 
 add_library(lzma SHARED "src/lzma/lzma.hpp" "src/lzma/lzma.cpp")
 add_library(libco SHARED "src/libco/libco.c")
