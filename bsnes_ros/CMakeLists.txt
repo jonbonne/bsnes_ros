@@ -24,6 +24,7 @@ find_package(rclcpp REQUIRED)
 find_package(pybind11 REQUIRED)
 #find_package(ao REQUIRED)
 find_package(OpenAL REQUIRED)
+find_package(X11 REQUIRED)
 #find_package(Cairo REQUIRED)
 find_package(GTK2 REQUIRED)
 #find_package(Xv REQUIRED)
@@ -53,11 +54,18 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include/${PROJECT_NAME}
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/sfc
+    ${PROJECT_SOURCE_DIR}/src/ruby/audio
+    ${PROJECT_SOURCE_DIR}/src/ruby/video
+    ${PROJECT_SOURCE_DIR}/src/ruby/input
 #    ${rclcpp_INCLUDE_DIRS}
     ${pybind11_INCLUDE_DIRS}
     ${PYTHON_INCLUDE_DIRS}
     "/usr/include/gtksourceview-2.0"
     "/usr/include/cairo"
+#    "/usr/include/pulse"
+    "/usr/include/alsa"
+    "/usr/include"
+    ${X11_INCLUDE_DIRS}
     ${sourcery_INCLUDE_DIRS}
     ${OpenAL_INCLUDE_DIRS}
     ${GTK2_INCLUDE_DIRS}
@@ -67,6 +75,7 @@ include_directories(
 link_directories(
     ${rclcpp_LIBRARY_DIRS}
     "/usr/lib/python${PYTHON_VER}/config-${PYTHON_VER}m-x86_64-linux-gnu/"
+    ${X11_LIBRARY_DIRS}
     ${OpenAL_LIBRARY_DIRS}
     ${GTK2_LIBRARY_DIRS}
     ${ALSA_LIBRARY_DIRS}
@@ -75,9 +84,20 @@ link_directories(
 
 add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
 add_definitions(-D_REENTRANT)
-add_definitions(-DHIRO_GTK=2)
+#add_definitions(-DHIRO_GTK=2 -DDISPLAY_XORG -DVIDEO_XSHM -DVIDEO_XVIDEO -DAUDIO_ALSA -DAUDIO_AO -DAUDIO_OPENAL -DAUDIO_PULSEAUDIO -DINPUT_UDEV)
+add_definitions(-DHIRO_GTK=2 -DVIDEO_XSHM -DVIDEO_XVIDEO -DAUDIO_ALSA -DINPUT_UDEV)
 
-# build up libraries
+###################
+###################
+#                 #
+#      Build      #
+#                 #
+###################
+###################
+
+#
+# Build gb
+#
 add_library(gb-apu SHARED "src/gb/Core/apu.c")
 add_library(gb-camera SHARED "src/gb/Core/camera.c")
 #add_library(gb-debugger SHARED "src/gb/Core/debugger.c")
@@ -99,6 +119,9 @@ add_library(gb-symbol_hash SHARED "src/gb/Core/symbol_hash.c")
 add_library(gb-timing SHARED "src/gb/Core/timing.c")
 set(gb_TARGETS gb-apu gb-camera gb-display gb-gb gb-joypad gb-mbc gb-memory gb-printer gb-random gb-rewind gb-save_state gb-sgb gb-sm83_cpu gb-symbol_hash gb-timing)
 
+#
+# Build sfc
+#
 add_library(sfc-interface SHARED "src/sfc/interface/interface.cpp")
 add_library(sfc-system SHARED "src/sfc/system/system.cpp")
 add_library(sfc-controller SHARED "src/sfc/controller/controller.cpp")
@@ -115,16 +138,21 @@ target_link_libraries(sfc-coprocessor ${gb_TARGETS})
 add_library(sfc-slot SHARED "src/sfc/slot/slot.cpp")
 set(sfc_TARGETS sfc-interface sfc-system sfc-controller sfc-cartridge sfc-memory sfc-cpu sfc-smp sfc-dsp sfc-ppu sfc-ppu-fast sfc-expansion sfc-coprocessor sfc-slot)
 
+#
+# Build processors
+#
 add_library(processor-arm7tdmi SHARED "src/processor/arm7tdmi/arm7tdmi.cpp")
+add_library(processor-spc700 SHARED "src/processor/spc700/spc700.cpp")
+add_library(processor-wdc65816 SHARED "src/processor/wdc65816/wdc65816.cpp")
 #add_library(processor-gsu SHARED "src/processor/gsu/gsu.cpp")
 #add_library(processor-hg51b SHARED "src/processor/hg51b/hg51b.cpp")
 #add_library(processor-sm83 SHARED "src/processor/sm83/sm83.cpp")
-add_library(processor-spc700 SHARED "src/processor/spc700/spc700.cpp")
 #add_library(processor-upd96050 SHARED "src/processor/upd96050/upd96050.cpp")
-add_library(processor-wdc65816 SHARED "src/processor/wdc65816/wdc65816.cpp")
 set(processor_TARGETS processor-arm7tdmi processor-spc700 processor-wdc65816)
 
-# Add Libraries/Executables
+#
+# Build ui
+#
 #add_library(ui-bsnes SHARED "src/target-bsnes/bsnes.cpp")
 add_library(ui-program SHARED "src/target-bsnes/program/program.cpp")
 add_library(ui-input SHARED "src/target-bsnes/input/input.cpp")
@@ -134,23 +162,70 @@ add_library(ui-tools SHARED "src/target-bsnes/tools/tools.cpp")
 add_library(ui-resource SHARED "src/target-bsnes/resource/resource.cpp")
 set(ui_TARGETS ui-program ui-input ui-presentation ui-settings ui-tools ui-resource)
 
-execute_process(COMMAND "sourcery resource.bml resource.cpp resource.hpp" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/hiro/resource)
-execute_process(COMMAND "sourcery resource.bml resource.cpp resource.hpp" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/target-bsnes/resource)
+#
+# Build resources with sourcery
+#
+set(hiro_RESOURCES "")
+set(target-bsnes_RESOURCES "")
+execute_process(COMMAND "sourcery resource.bml resource.cpp resource.hpp"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/hiro/resource
+    OUTPUT_VARIABLE hiro_RESOURCES)
+execute_process(COMMAND "sourcery resource.bml resource.cpp resource.hpp"
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/src/target-bsnes/resource
+    OUTPUT_VARIABLE target-bsnes_RESOURCES)
 
-add_library(hiro-gtk2 SHARED "src/hiro/hiro.cpp")
-target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype X11 Xext)
+#
+# Build hiro-gtk2
+#
+add_library(hiro-gtk2 SHARED "src/hiro/hiro.cpp" ${hiro_RESOURCES})
+target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype ${X11_LIBRARIES})
 #set(hiro_DEPS gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
 set(hiro_DEPS ${GTK2_LIBRARIES} gtksourceview-2.0)
-add_library(ruby SHARED "src/ruby/ruby.cpp")
+
+#
+# Build ruby
+#
+add_library(ruby SHARED 
+    "src/ruby/ruby.hpp"
+    "src/ruby/ruby.cpp"
+    "src/ruby/audio/audio.hpp"
+    "src/ruby/audio/audio.cpp"
+    "src/ruby/audio/alsa.cpp"
+    #    "src/ruby/audio/ao.cpp"
+    #    "src/ruby/audio/pulseaudio.cpp"
+    "src/ruby/video/video.hpp"
+    "src/ruby/video/video.cpp"
+    "src/ruby/video/xshm.cpp"
+    "src/ruby/video/xvideo.cpp"
+    "src/ruby/input/input.hpp"
+    "src/ruby/input/input.cpp"
+    "src/ruby/input/udev.cpp"
+)
 #set(ruby_DEPS Xv asound openal pulse pulse-simple ao asound udev)
 set(ruby_DEPS Xv ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} GL udev)
 
+#
+# Build lzma
+#
 add_library(lzma SHARED "src/lzma/lzma.hpp" "src/lzma/lzma.cpp")
+
+#
+# Build libco
+#
 add_library(libco SHARED "src/libco/libco.c")
+
+#
+# Build emulator
+#
 add_library(emulator SHARED "src/emulator/emulator.cpp")
+
+#
+# Build filter
+#
 add_library(filter SHARED "src/filter/filter.cpp")
 
-add_executable(${PROJECT_NAME} "src/target-bsnes/bsnes.cpp")
+file(GLOB_RECURSE h_files "${PROJECT_SOURCE_DIR}/src/*/*.h*")
+add_executable(${PROJECT_NAME} ${h_files} "src/target-bsnes/bsnes.cpp" ${target-bsnes_RESOURCES})
 #set(project_DEPS ao asound asyncns dbus-1 FLAC gcrypt GLdispatch GL GLX gomp gpg-error lz4 nsl ogg openal pulsecommon-11.1 pulse-simple pulse SDL2-2.0 xkbcommon Xss Xv Xxf86vm)
 set(project_DEPS ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} ${GTK2_LIBRARIES} udev)
 target_link_libraries(${PROJECT_NAME} ${ui_TARGETS} ${sfc_TARGETS} ${gb_TARGETS} ${processor_TARGETS} emulator filter ruby hiro-gtk2 ${hiro_DEPS} ${ruby_DEPS} ${project_DEPS} libco lzma dl)
@@ -211,6 +286,7 @@ ament_export_dependencies(ament_cmake_python)
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(rclpy)
 #ament_export_dependencies(ao)
+ament_export_dependencies(X11)
 ament_export_dependencies(OpenAL)
 #ament_export_dependencies(Cairo)
 ament_export_dependencies(GTK2)
