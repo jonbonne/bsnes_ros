@@ -85,7 +85,7 @@ link_directories(
 add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
 add_definitions(-D_REENTRANT)
 #add_definitions(-DHIRO_GTK=2 -DDISPLAY_XORG -DVIDEO_XSHM -DVIDEO_XVIDEO -DAUDIO_ALSA -DAUDIO_AO -DAUDIO_OPENAL -DAUDIO_PULSEAUDIO -DINPUT_UDEV)
-add_definitions(-DHIRO_GTK=2 -DVIDEO_XSHM -DVIDEO_XVIDEO -DAUDIO_ALSA -DINPUT_UDEV)
+add_definitions(-DHIRO_GTK=2 -DDISPLAY_XORG -DVIDEO_XSHM -DVIDEO_XVIDEO -DAUDIO_ALSA -DINPUT_UDEV)
 
 ###################
 ###################
@@ -188,18 +188,18 @@ set(hiro_DEPS ${GTK2_LIBRARIES} gtksourceview-2.0)
 add_library(ruby SHARED 
     "src/ruby/ruby.hpp"
     "src/ruby/ruby.cpp"
-    "src/ruby/audio/audio.hpp"
-    "src/ruby/audio/audio.cpp"
-    "src/ruby/audio/alsa.cpp"
+    #    "src/ruby/audio/audio.hpp"
+    #    "src/ruby/audio/audio.cpp"
+    #    "src/ruby/audio/alsa.cpp"
     #    "src/ruby/audio/ao.cpp"
     #    "src/ruby/audio/pulseaudio.cpp"
-    "src/ruby/video/video.hpp"
-    "src/ruby/video/video.cpp"
-    "src/ruby/video/xshm.cpp"
-    "src/ruby/video/xvideo.cpp"
-    "src/ruby/input/input.hpp"
-    "src/ruby/input/input.cpp"
-    "src/ruby/input/udev.cpp"
+    #    "src/ruby/video/video.hpp"
+    #    "src/ruby/video/video.cpp"
+    #    "src/ruby/video/xshm.cpp"
+    #    "src/ruby/video/xvideo.cpp"
+    #    "src/ruby/input/input.hpp"
+    #    "src/ruby/input/input.cpp"
+    #    "src/ruby/input/udev.cpp"
 )
 #set(ruby_DEPS Xv asound openal pulse pulse-simple ao asound udev)
 set(ruby_DEPS Xv ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} GL udev)
