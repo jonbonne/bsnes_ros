@@ -22,15 +22,11 @@ find_package(ament_cmake_ros REQUIRED)
 find_package(sourcery REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(pybind11 REQUIRED)
-#find_package(ao REQUIRED)
 find_package(OpenAL REQUIRED)
 find_package(X11 REQUIRED)
-#find_package(Cairo REQUIRED)
 find_package(GTK2 REQUIRED)
-#find_package(Xv REQUIRED)
 find_package(ALSA REQUIRED)
 find_package(PulseAudio REQUIRED)
-#find_package(SDL REQUIRED)
 find_package(PythonInterp "${PYTHON_VER}" REQUIRED)
 find_package(PythonLibs "${PYTHON_VER}")
 set(PYTHON_INCLUDE_DIRS "/usr/include/python${PYTHON_VER}")
@@ -62,7 +58,6 @@ include_directories(
     ${PYTHON_INCLUDE_DIRS}
     "/usr/include/gtksourceview-2.0"
     "/usr/include/cairo"
-#    "/usr/include/pulse"
     "/usr/include/alsa"
     "/usr/include"
     ${X11_INCLUDE_DIRS}
@@ -84,7 +79,6 @@ link_directories(
 
 add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
 add_definitions(-D_REENTRANT)
-#add_definitions(-DHIRO_GTK=2 -DDISPLAY_XORG -DVIDEO_XSHM -DVIDEO_XVIDEO -DAUDIO_ALSA -DAUDIO_AO -DAUDIO_OPENAL -DAUDIO_PULSEAUDIO -DINPUT_UDEV)
 add_definitions(-DHIRO_GTK=2 -DDISPLAY_XORG -DVIDEO_XSHM -DVIDEO_XVIDEO -DAUDIO_ALSA -DINPUT_UDEV)
 
 ###################
@@ -179,7 +173,6 @@ execute_process(COMMAND "sourcery resource.bml resource.cpp resource.hpp"
 #
 add_library(hiro-gtk2 SHARED "src/hiro/hiro.cpp" ${hiro_RESOURCES})
 target_link_libraries(hiro-gtk2 pthread cairo fontconfig freetype ${X11_LIBRARIES})
-#set(hiro_DEPS gtksourceview-2.0 gtk-x11-2.0 gdk-x11-2.0 pangocairo-1.0 atk-1.0 gdk_pixbuf-2.0 gio-2.0 pangoft2-1.0 pango-1.0 gobject-2.0 glib-2.0)
 set(hiro_DEPS ${GTK2_LIBRARIES} gtksourceview-2.0)
 
 #
@@ -188,20 +181,7 @@ set(hiro_DEPS ${GTK2_LIBRARIES} gtksourceview-2.0)
 add_library(ruby SHARED 
     "src/ruby/ruby.hpp"
     "src/ruby/ruby.cpp"
-    #    "src/ruby/audio/audio.hpp"
-    #    "src/ruby/audio/audio.cpp"
-    #    "src/ruby/audio/alsa.cpp"
-    #    "src/ruby/audio/ao.cpp"
-    #    "src/ruby/audio/pulseaudio.cpp"
-    #    "src/ruby/video/video.hpp"
-    #    "src/ruby/video/video.cpp"
-    #    "src/ruby/video/xshm.cpp"
-    #    "src/ruby/video/xvideo.cpp"
-    #    "src/ruby/input/input.hpp"
-    #    "src/ruby/input/input.cpp"
-    #    "src/ruby/input/udev.cpp"
 )
-#set(ruby_DEPS Xv asound openal pulse pulse-simple ao asound udev)
 set(ruby_DEPS Xv ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} GL udev)
 
 #
@@ -226,7 +206,6 @@ add_library(filter SHARED "src/filter/filter.cpp")
 
 file(GLOB_RECURSE h_files "${PROJECT_SOURCE_DIR}/src/*/*.h*")
 add_executable(${PROJECT_NAME} ${h_files} "src/target-bsnes/bsnes.cpp" ${target-bsnes_RESOURCES})
-#set(project_DEPS ao asound asyncns dbus-1 FLAC gcrypt GLdispatch GL GLX gomp gpg-error lz4 nsl ogg openal pulsecommon-11.1 pulse-simple pulse SDL2-2.0 xkbcommon Xss Xv Xxf86vm)
 set(project_DEPS ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} ${GTK2_LIBRARIES} udev)
 target_link_libraries(${PROJECT_NAME} ${ui_TARGETS} ${sfc_TARGETS} ${gb_TARGETS} ${processor_TARGETS} emulator filter ruby hiro-gtk2 ${hiro_DEPS} ${ruby_DEPS} ${project_DEPS} libco lzma dl)
 
@@ -285,15 +264,11 @@ ament_export_dependencies(ament_cmake)
 ament_export_dependencies(ament_cmake_python)
 ament_export_dependencies(rclcpp)
 ament_export_dependencies(rclpy)
-#ament_export_dependencies(ao)
 ament_export_dependencies(X11)
 ament_export_dependencies(OpenAL)
-#ament_export_dependencies(Cairo)
 ament_export_dependencies(GTK2)
-#ament_export_dependencies(Xv)
 ament_export_dependencies(ALSA)
 ament_export_dependencies(PulseAudio)
-#ament_export_dependencies(SDL)
 ament_export_include_directories(include ${rclcpp_INCLUDE_DIRS})
 ament_export_libraries(${PROJECT_NAME} ${rclcpp_LIBRARIES})
 
