@@ -10,6 +10,9 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     add_compile_options(-Wall -Wextra -Wpedantic -fPIC -O3 -DBUILD_PERFORMANCE -fwhole-program -flto -fno-fat-lto-objects -fno-strict-aliasing -fwrapv)
 endif()
 
+# add the PulseAudio cmake finder
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 # Pybind11 Settings
 set(PYTHON_VER "3.6")
 set(PYBIND11_PYTHON_VERSION ${PYTHON_VER})
@@ -65,7 +68,7 @@ include_directories(
     ${OpenAL_INCLUDE_DIRS}
     ${GTK2_INCLUDE_DIRS}
     ${ALSA_INCLUDE_DIRS}
-    ${PulseAudio_INCLUDE_DIRS}
+    ${PULSEAUDIO_INCLUDE_DIRS}
 )
 link_directories(
     ${rclcpp_LIBRARY_DIRS}
@@ -74,12 +77,12 @@ link_directories(
     ${OpenAL_LIBRARY_DIRS}
     ${GTK2_LIBRARY_DIRS}
     ${ALSA_LIBRARY_DIRS}
-    ${PulseAudio_LIBRARY_DIRS}
+    ${PULSEAUDIO_LIBRARY_DIRS}
     )
 
 add_definitions(-DGB_INTERNAL -DDISABLE_DEBUGGER -D_GNU_SOURCE -Wno-multichar)
 add_definitions(-D_REENTRANT)
-add_definitions(-DHIRO_GTK=2 -DDISPLAY_XORG -DVIDEO_XSHM -DVIDEO_XVIDEO -DAUDIO_ALSA -DINPUT_UDEV)
+add_definitions(-DHIRO_GTK=2 -DDISPLAY_XORG -DVIDEO_XVIDEO -DAUDIO_PULSEAUDIO -DINPUT_UDEV)
 
 ###################
 ###################
@@ -182,7 +185,7 @@ add_library(ruby SHARED
     "src/ruby/ruby.hpp"
     "src/ruby/ruby.cpp"
 )
-set(ruby_DEPS Xv ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} GL udev)
+set(ruby_DEPS Xv ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PULSEAUDIO_LIBRARIES} GL udev)
 
 #
 # Build lzma
@@ -206,7 +209,7 @@ add_library(filter SHARED "src/filter/filter.cpp")
 
 file(GLOB_RECURSE h_files "${PROJECT_SOURCE_DIR}/src/*/*.h*")
 add_executable(${PROJECT_NAME} ${h_files} "src/target-bsnes/bsnes.cpp" ${target-bsnes_RESOURCES})
-set(project_DEPS ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PulseAudio_LIBRARIES} ${GTK2_LIBRARIES} udev)
+set(project_DEPS ${OpenAL_LIBRARIES} ${ALSA_LIBRARIES} ${PULSEAUDIO_LIBRARIES} ${GTK2_LIBRARIES} udev)
 target_link_libraries(${PROJECT_NAME} ${ui_TARGETS} ${sfc_TARGETS} ${gb_TARGETS} ${processor_TARGETS} emulator filter ruby hiro-gtk2 ${hiro_DEPS} ${ruby_DEPS} ${project_DEPS} libco lzma dl)
 
 #
